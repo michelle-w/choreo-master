@@ -4,7 +4,7 @@ sys.path.append("../")
 import preprocess as preprocess
 import input_processing_MPII as process_MPII
 import input_processing_body25 as process_body25
-import postprocess as postprocesss
+import postprocess as postprocess
 
 import numpy as np
 import os
@@ -38,17 +38,17 @@ class Video_Analyzer:
         self.offset = preprocess.calculate_offset(os.path.join(self.path, self.test_path), os.path.join(self.path, self.ref_path))
         preprocess.get_audio_file(os.path.join(self.path, self.test_path), self.offset, os.path.join(self.path, "{}_audio.mp3".format(self.name)))
 
-        self.duration = preprocess.get_duration(os.path.join(self.path, self.test_path), self.ref_path, self.offset)
-
+        self.duration = preprocess.get_duration(os.path.join(self.path, self.test_path), os.path.join(self.path, self.test_path), self.offset)
+        
         # extract frames for StackedHourglass
-        path = os.path.join(self.base_path, "{}".format(self.name))
-        process_MPII.extract_frames(self.test_path, start_time = 0, duration = self.duration, desired_fps = 24, target_folder_name = "test_frames", base_path = path, max_frames = 10000)
-        process_MPII.extract_frames(self.ref_path, start_time = self.offset, duration = self.duration, desired_fps = 24, target_folder_name = "ref_frames", base_path = path, max_frames = 10000)
+        # path = os.path.join(self.base_path, "{}".format(self.name))
+        # process_MPII.extract_frames(self.test_path, start_time = 0, duration = self.duration *1000, desired_fps = 24, target_folder_name = "test_frames", base_path = path, max_frames = 10000)
+        # process_MPII.extract_frames(self.ref_path, start_time = self.offset, duration = self.duration*1000, desired_fps = 24, target_folder_name = "ref_frames", base_path = path, max_frames = 10000)
     
     def analyze_frames_for_hourglass(self):
         path = os.path.join(self.base_path, "{}".format(self.name))
         rel_no_roms_accs, rel_roms_accs, abs_accs = process_MPII.process_frames(
-            "test_frames", "ref_frames", num_frames = self.duration * self.fps, 
+            "test_frames", "ref_frames", num_frames = int(self.duration * self.fps), 
             target_folder_name = "sh_comparison_frames", base_path = path, 
             offset = self.offset, save = True)
         
@@ -123,11 +123,13 @@ class Video_Analyzer:
 
 
 def main():
-    # name = "blackpink"
-    name = "seven_rings"
+    name = "blackpink"
+    # name = "seven_rings"
     base_path = "../data"
-    test_path = "seven_rings_test.mp4"
-    ref_path = "seven_rings_ref.mp4"
+    # test_path = "seven_rings_test.mp4"
+    # ref_path = "seven_rings_ref.mp4"
+    test_path = "test.mp4"
+    ref_path = "reference.mp4"
     fps = 24
     test_analyzer = Video_Analyzer(name, test_path, ref_path, base_path, fps)
     test_analyzer.read_inputs_for_hourglass()

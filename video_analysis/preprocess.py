@@ -43,5 +43,7 @@ def main():
     # creates audio file given audio file name
     get_audio_file("./aya_hwasa.mp4", offset, "./aya_audio.mp3")
 
+    # get_duration("../data/reference.mp4")
+
 if __name__ == "__main__":
     main()

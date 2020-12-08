@@ -99,7 +99,7 @@ def process_frames(folder_name1, folder_name2, num_frames, target_folder_name = 
     num_frames2 = len(os.listdir(folder_path2))
     shift = int(offset * 24)
 
-    num_frames = min(num_frames1, num_frames2, num_frames)
+    num_frames = int(min(num_frames1, num_frames2, num_frames))
     accs = np.zeros((num_frames,))
 
     rel_no_roms_accs = np.zeros((num_frames,))
@@ -116,10 +116,12 @@ def process_frames(folder_name1, folder_name2, num_frames, target_folder_name = 
         save=True
         draw_images(im1=f1_name, im2=f2_name, kp1=kp1, kp2=kp2, save=save, target_folder_path=target_folder_path, frame_index=i)
 
+        kp1 = kp1[0]
+        kp2 = kp2[0]
         if len(kp1) != 0 and len(kp2) != 0:
-            rel_no_roms_acc = calculate_relative_angle_scores(kp1, kp2, mpii.MPII_ANGLE_LABELS, mpii.MPII_BONES, mpii.MPII_ANGLES_NAMES, mpii.MPII_ANGLE_ROMS, False)
-            rel_roms_acc = calculate_relative_angle_scores(kp1, kp2,  mpii.MPII_ANGLE_LABELS, mpii.MPII_BONES, mpii.MPII_ANGLES_NAMES, mpii.MPII_ANGLE_ROMS, True)
-            abs_acc = calculate_absolute_angle_scores(kp1, kp2, mpii.MPII_ANGLE_LABELS, mpii.MPII_BONES)
+            rel_no_roms_acc = calculate_relative_angle_scores(kp1, kp2, mpii.MPII_ANGLES, mpii.MPII_BONES, mpii.MPII_ANGLES_NAMES, mpii.MPII_ANGLE_ROMS, False)
+            rel_roms_acc = calculate_relative_angle_scores(kp1, kp2,  mpii.MPII_ANGLES, mpii.MPII_BONES, mpii.MPII_ANGLES_NAMES, mpii.MPII_ANGLE_ROMS, True)
+            abs_acc = calculate_absolute_angle_scores(kp1, kp2, mpii.MPII_ANGLES, mpii.MPII_BONES)
             prev_avg = (rel_no_roms_acc + rel_roms_acc + abs_acc) / 3
         else:
             acc = prev_avg

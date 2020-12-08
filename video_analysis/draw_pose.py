@@ -43,8 +43,10 @@ def draw_skeleton_on_image(image, keypoints, target=plt, index=None):
 def draw_images(im1, im2, kp1, kp2, save, target_folder_path, frame_index):
     fig, (ax1, ax2) = plt.subplots(1,2)
     # fig.suptitle("Snapshot comparison")
-    draw_skeleton_on_image(im1, kp1, ax1)
-    draw_skeleton_on_image(im2, kp2, ax2)
+    im1_object = cv2.imread(im1)
+    im2_object = cv2.imread(im2)
+    draw_skeleton_on_image(im1_object, kp1, ax1)
+    draw_skeleton_on_image(im2_object, kp2, ax2)
     ax1.set_title("Test")
     ax2.set_title("Reference")
     if save:

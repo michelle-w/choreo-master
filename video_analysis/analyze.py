@@ -51,6 +51,7 @@ def calculate_relative_angle_scores(kp1, kp2, angle_labels, bone_labels, angle_n
 def calculate_absolute_angle_scores(kp1, kp2, bone_labels, bone_names=None, debug=False):
     sum_diffs = 0
     bone_count = 0
+    kp1, kp2 = kp1[0], kp2[0] # just look at keypoints for the first person returned
     for i, b in enumerate(bone_labels):
         v1 = kp1[b[0]] - kp1[b[1]]
         v2 = kp2[b[0]] - kp2[b[1]]
