@@ -7,11 +7,15 @@ import glob
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
-sys.path.append("../")
+# sys.path.append("../")
 sys.path.append("../stacked_hourglass")
 from stacked_hourglass.infer import *
-from stacked_hourglass.analyze import *
 import datetime
+from video_analysis.draw_pose import draw_images
+
+from analyze import calculate_relative_angle_scores, calculate_absolute_angle_scores
+from score_analysis import find_problem_times, find_top_n_problems
+import mpii_labels as mpii
 
 '''
 Parameters
@@ -23,11 +27,12 @@ target_folder_name: folder name that frames should be saved into
 base_path:  path of where videos are and frames should be saved
 max_frames: max number of frames that we want to save
 '''
-def extract_frames(file_name, file_type, start_time, end_time, desired_fps = 24, target_folder_name = "frames", base_path = "./", max_frames = 10000):
-    if target_folder_name == "frames":
-        target_folder_name = file_name + "_frames"
+def extract_frames(file_name, start_time, duration, target_folder_name, desired_fps = 24, base_path = "./", max_frames=10000):
     target_folder_name = os.path.join(base_path, target_folder_name)
-    cam = cv2.VideoCapture(os.path.join(base_path, file_name + "." + file_type))
+
+    end_time = start_time + duration
+
+    cam = cv2.VideoCapture(os.path.join(base_path, file_name))
     curr_ms = start_time
     timestep = 1000/desired_fps
   
@@ -49,21 +54,11 @@ def extract_frames(file_name, file_type, start_time, end_time, desired_fps = 24,
         # reading from frame 
         cam.set(cv2.CAP_PROP_POS_MSEC, curr_ms)
         ret, frame = cam.read() 
-        
-        # print("relative position: ", cam.get(cv2.CAP_PROP_POS_AVI_RATIO ))
-        # print("frame num: ", cam.get(cv2.CAP_PROP_POS_FRAMES ))
-
-        if currentframe > max_frames:
-            break
 
         currentframe += 1
     
         if curr_ms <= end_time and ret: # we want to be saving and have video remaining
             # if video is still left continue creating images 
-            # name = './data/frame' + str(currentframe) + '.jpg'
-            # print ('Creating...' + name) 
-            # name = os.path.join(target_folder_name, "frame{}_{1:.{2}f}ms_.png".format(saved_count, curr_ms, MS_ROUNDING))
-
             name = os.path.join(target_folder_name, "frame{}.png".format(saved_count))
             # writing the extracted images 
             cv2.imwrite(name, frame) 
@@ -107,29 +102,35 @@ def process_frames(folder_name1, folder_name2, num_frames, target_folder_name = 
     num_frames = min(num_frames1, num_frames2, num_frames)
     accs = np.zeros((num_frames,))
 
+    rel_no_roms_accs = np.zeros((num_frames,))
+    rel_roms_accs = np.zeros((num_frames,))
+    abs_accs = np.zeros((num_frames,))
+
     for i in range(num_frames):
         f_name1 = "frame{}.png".format(i)
         f_name2 = "frame{}.png".format(i+shift)
         f1_name = os.path.join(folder_path1, f_name1)
         f2_name = os.path.join(folder_path2, f_name2)
-        acc = compare_images(f1_name, f2_name, save, target_folder_name, i)
-        # plt.show()
-        # plt.savefig(os.path.join(target_folder_path, f_name))
-        accs[i] = acc
-    return accs
+        kp1 = get_keypoints(f1_name)
+        kp2 = get_keypoints(f2_name)
+        save=True
+        draw_images(im1=f1_name, im2=f2_name, kp1=kp1, kp2=kp2, save=save, target_folder_path=target_folder_path, frame_index=i)
 
-def create_end_video(frame_folder_path, target_file_path, fps, num_frames):
-    i = 0
-    img = cv2.imread(frame_folder_path + "/frame{}.png".format(i))
-    height, width, layers = img.shape
-    size = (width,height)
-    out = cv2.VideoWriter(target_file_path,cv2.VideoWriter_fourcc(*'DIVX'), fps, size)
+        if len(kp1) != 0 and len(kp2) != 0:
+            rel_no_roms_acc = calculate_relative_angle_scores(kp1, kp2, mpii.MPII_ANGLE_LABELS, mpii.MPII_BONES, mpii.MPII_ANGLES_NAMES, mpii.MPII_ANGLE_ROMS, False)
+            rel_roms_acc = calculate_relative_angle_scores(kp1, kp2,  mpii.MPII_ANGLE_LABELS, mpii.MPII_BONES, mpii.MPII_ANGLES_NAMES, mpii.MPII_ANGLE_ROMS, True)
+            abs_acc = calculate_absolute_angle_scores(kp1, kp2, mpii.MPII_ANGLE_LABELS, mpii.MPII_BONES)
+            prev_avg = (rel_no_roms_acc + rel_roms_acc + abs_acc) / 3
+        else:
+            acc = prev_avg
+        
+        rel_no_roms_accs[i] = rel_no_roms_acc
+        rel_roms_accs[i] = rel_roms_acc
+        abs_accs[i] = abs_acc
+ 
+    return rel_no_roms_accs, rel_roms_accs, abs_accs
 
-    for i in range(num_frames):
-        img = cv2.imread(frame_folder_path + "/frame{}.png".format(i))
-        out.write(img)
-    
-    out.release() 
+
 
 def test_write(frame_folder_path, target_file_path):
     frame_folder_path = "./media/aya_comparison_offset"

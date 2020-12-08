@@ -1,12 +1,16 @@
-from analyze import calculate_similarity_score, calculate_absolute_angle_scores
-from score_analysis import find_problem_times, find_top_n
-import body25_labels
+from analyze import calculate_relative_angle_scores, calculate_absolute_angle_scores
+from score_analysis import find_problem_times, find_top_n_problems
+import body25_labels as b25
 
-def get_keypoints_from_json(filename):
-    with open(filename) as f:
+import numpy as np
+import json
+import os
+
+def get_keypoints_from_json(frame_filename):
+    with open(frame_filename) as f:
         data = json.load(f)
     if len(data['people']) == 0:
-        print("No people found in ", filename)
+        print("No people found in ", frame_filename)
         return []
     all_data = data['people'][0]['pose_keypoints_2d']
     # remove the confidence scores
@@ -16,39 +20,30 @@ def get_keypoints_from_json(filename):
     keypoints = np.array_split(kps_only, split)
     return keypoints
 
-def process_frames(folder_name1, folder_name2, num_frames, target_folder_name = "", base_path = "./", offset = 0, save = True, use_absolute_metric = False):
+# TODO: add support for custom video names 
+# Returns accuracies in 3 metrics: 1) relative angles without ranges of motion, 
+# 2) relative angles with ranges of motion, 3) absolute angles to x-axis
+def process_openpose_frames(name, folder_name1, folder_name2, num_frames, base_path = "./"):
     folder_path1, folder_path2 = os.path.join(base_path, folder_name1), os.path.join(base_path, folder_name2)
-    if target_folder_name == "":
-        target_folder_name = "{}_vs_{}".format(folder_name1, folder_name2)
-    target_folder_path = os.path.join(base_path, target_folder_name)
-
-    # save extracted frames to a folder
-    try:
-        # creating a folder
-        if not os.path.exists(target_folder_path): 
-            os.makedirs(target_folder_path)
-
-    # if not created then raise error 
-    except OSError: 
-        print ('Error: Creating directory of data') 
 
     num_frames1 = len(os.listdir(folder_path1))
     num_frames2 = len(os.listdir(folder_path2))
-    shift = int(offset * 24)
-
     num_frames = min(num_frames1, num_frames2, num_frames)
-    accs = np.zeros((num_frames,))
 
-    avg_so_far = 0
+    rel_no_roms_accs = np.zeros((num_frames,))
+    rel_roms_accs = np.zeros((num_frames,))
+    abs_accs = np.zeros((num_frames,))
+
+    prev_avg = 0
 
     for i in range(num_frames):
         number_str = str(i)
-        zero_filled_number = number_str.zfill(3) # 3 leading digits
-        f_name1 = "test_bad_000000000{}_keypoints.json".format(zero_filled_number)
+        zero_filled_number = number_str.zfill(12) # must have 12 digits
+        f_name1 = "{}_test_{}_keypoints.json".format(name, zero_filled_number)
 
         number_str = str(i+shift)
-        zero_filled_number = number_str.zfill(3) # 3 leading digits
-        f_name2 = "reference_000000000{}_keypoints.json".format(zero_filled_number)
+        zero_filled_number = number_str.zfill(12) # must have 12 digits
+        f_name2 = "{}_reference_{}_keypoints.json".format(name, zero_filled_number)
         
         f1_name = os.path.join(folder_path1, f_name1)
         f2_name = os.path.join(folder_path2, f_name2)
@@ -57,16 +52,15 @@ def process_frames(folder_name1, folder_name2, num_frames, target_folder_name = 
         kp2 = get_keypoints_from_json(f2_name)
 
         if len(kp1) != 0 and len(kp2) != 0:
-            if use_absolute_metric:
-                accuracy = calculate_absolute_angle_scores(ref_joints.numpy()[0], test_joints.numpy()[0], mpii_labels.MPII_BONES, bone_names=mpii_labels.MPII_BONES_NAMES, debug=debug)
-            else:
-                accuracy = calculate_similarity_score(ref_joints.numpy()[0], test_joints.numpy()[0], mpii_labels.MPII_ANGLES, mpii_labels.MPII_BONES, mpii_labels.MPII_ANGLES_NAMES)
-                avg_so_far = (i*avg_so_far + acc) / (i + 1)
+            rel_no_roms_acc = calculate_relative_angle_scores(kp1, kp2, b25.BODY25_ANGLE_LABELS, b25.BODY25_BONES, b25.BODY25_ANGLES_NAMES, b25.BODY25_ANGLE_ROMS, False)
+            rel_roms_acc = calculate_relative_angle_scores(kp1, kp2, b25.BODY25_ANGLE_LABELS, b25.BODY25_BONES, b25.BODY25_ANGLES_NAMES, b25.BODY25_ANGLE_ROMS, True)
+            abs_acc = calculate_absolute_angle_scores(kp1, kp2, b25.BODY25_ANGLE_LABELS, b25.BODY25_BONES)
+            prev_avg = (rel_no_roms_acc + rel_roms_acc + abs_acc) / 3
         else:
-          acc = avg_so_far
+            acc = prev_avg
         
-        # plt.show()
-        # plt.savefig(os.path.join(target_folder_path, f_name))
+        rel_no_roms_accs[i] = rel_no_roms_acc
+        rel_roms_accs[i] = rel_roms_acc
+        abs_accs[i] = abs_acc
 
-        accs[i] = acc
-    return accs
+    return rel_no_roms_accs, rel_roms_accs, abs_accs

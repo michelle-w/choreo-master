@@ -2,7 +2,6 @@ import numpy as np
 
 def calculate_angles(keypoints, angle_labels, bone_labels, angle_name_labels, debug=False):
     angles = []
-    # keypoints = keypoints[0]
     for i, bones in enumerate(angle_labels):
         k1 = keypoints[bone_labels[bones[0]][0]]
         k2 = keypoints[bone_labels[bones[0]][1]]
@@ -34,17 +33,19 @@ def calculate_angles(keypoints, angle_labels, bone_labels, angle_name_labels, de
     
     return angles
 
-def calculate_similarity_score(kp1, kp2, angle_labels, bone_labels, angle_name_labels, debug=False):
-    # base = 180 * len(MPII_ANGLES)
+def calculate_relative_angle_scores(kp1, kp2, angle_labels, bone_labels, angle_name_labels, angle_roms, with_ranges_of_motion, debug=False):
     a1 = calculate_angles(kp1, angle_labels, bone_labels, angle_name_labels)
     a2 = calculate_angles(kp2, angle_labels, bone_labels, angle_name_labels)
 
     sum_diffs = 0
     for i, a in enumerate(angle_labels):
-        sum_diffs += abs(a1[i] - a2[i])
+        diff = abs(a1[i] - a2[i])
+        if with_ranges_of_motion:
+            diff /= (angle_roms[i] * 2)
+        sum_diffs += diff
         if debug:
             print("For angle {}, difference is {}".format(angle_name_labels[i], a1[i] - a2[i]))
-    return 1 - ((sum_diffs / len(angle_labels)) / 360)
+    return 1 - ((sum_diffs / len(angle_labels)) / 180)
 
     
 def calculate_absolute_angle_scores(kp1, kp2, bone_labels, bone_names=None, debug=False):
@@ -53,6 +54,7 @@ def calculate_absolute_angle_scores(kp1, kp2, bone_labels, bone_names=None, debu
     for i, b in enumerate(bone_labels):
         v1 = kp1[b[0]] - kp1[b[1]]
         v2 = kp2[b[0]] - kp2[b[1]]
+        # skip the keypoint if it wasn't detected
         if v1[1] == 0 or v2[1] == 0:
             continue
         bone_count += 1
@@ -67,5 +69,5 @@ def calculate_absolute_angle_scores(kp1, kp2, bone_labels, bone_names=None, debu
         if debug:
             print("For bone {}:\ntest angle: {},\nref angle: {},\ndifference is {}".format(bone_names[i], a1, a2, diff))
         
-    return 1 - ((sum_diffs / bone_count) / 360)
+    return 1 - ((sum_diffs / bone_count) / 180)
 

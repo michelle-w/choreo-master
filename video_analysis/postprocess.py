@@ -1,12 +1,5 @@
-# from moviepy.editor import *
-# videoclip = VideoFileClip("filename.mp4")
-# audioclip = AudioFileClip("audioname.mp3")
-
-# new_audioclip = CompositeAudioClip([audioclip])
-# videoclip.audio = new_audioclip
-# videoclip.write_videofile("new_filename.mp4")
-
 from moviepy.editor import VideoFileClip, AudioFileClip, CompositeAudioClip, CompositeVideoClip, clips_array
+import cv2
 
 def side_by_side_videos(test_video_file_path, ref_video_file_path, target_file_path):
     # aiming for 800 x 1200 pixels
@@ -14,11 +7,8 @@ def side_by_side_videos(test_video_file_path, ref_video_file_path, target_file_p
     h0 = 1200
     desired_ratio = w0/h0
     
-    clip1 = VideoFileClip(test_video_file_path) # add 30px contour
-    clip2 = VideoFileClip(ref_video_file_path) # add 30px contour
-    # final_clip = clips_array([[clip1], [clip2]]) # top bottom
-    # final_clip = clips_array([[clip1, clip2]]) # side by side - this isn't working properly though not sure why
-    # final_clip.resize(width=480).write_videofile(target_file_path)
+    clip1 = VideoFileClip(test_video_file_path)
+    clip2 = VideoFileClip(ref_video_file_path)
 
     w1 = clip1.w
     h1 = clip1.h
@@ -37,12 +27,20 @@ def side_by_side_videos(test_video_file_path, ref_video_file_path, target_file_p
         clip2 = clip2.resize(h0/h2)
     video = clips_array([[clip1,clip2]])
     video.write_videofile(target_file_path)
-    # video = CompositeVideoClip([clip1.set_position((0,0)),
-    #                        clip2.set_position((w0,0))])
-    # video.resize(width=w0*2, height=h0).write_videofile(target_file_path)
 
     
+def merge_frames_to_video_sh(frame_folder_path, target_file_path, fps, num_frames):
+    i = 0
+    img = cv2.imread(frame_folder_path + "/frame{}.png".format(i))
+    height, width, layers = img.shape
+    size = (width,height)
+    out = cv2.VideoWriter(target_file_path,cv2.VideoWriter_fourcc(*'DIVX'), fps, size)
 
+    for i in range(num_frames):
+        img = cv2.imread(frame_folder_path + "/frame{}.png".format(i))
+        out.write(img)
+    
+    out.release() 
 
 def add_audio_to_video(video_file_path, audio_file_path, target_file_path):
     videoclip = VideoFileClip(video_file_path)

@@ -109,3 +109,5 @@ ENV/
 *.png
 *.mp3
 *.mp4
+
+data/*

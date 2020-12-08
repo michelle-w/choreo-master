@@ -1,5 +1,7 @@
 from moviepy.editor import *
-
+from moviepy.video.io.ffmpeg_tools import ffmpeg_extract_subclip
+import sys
+sys.path.append("../")
 import align_videos_by_soundtrack.align as align
 import align_videos_by_soundtrack.cli_common as cli_common
 from align_videos_by_soundtrack.utils import check_and_decode_filenames
@@ -15,19 +17,23 @@ def calculate_offset(test_video_filename, ref_video_filename):
     for i, path in enumerate(file_specs):
         if not (result[i]["trim"] > 0):
             continue
-#         report.append(
-#             """Result: The beginning of '%s' needs to be trimmed off %.4f seconds \
-# (or to be added %.4f seconds padding) for all files to be in sync""" % (
-#                 path, result[i]["trim"], result[i]["pad"]))
         amount = result[i]["trim"]
 
     return round(amount, 4)
 
-def get_audio_file(ref_video_filename, offset, audio_filename):
-    video = VideoFileClip(ref_video_filename)
+def get_audio_file(test_video_filename, offset, target_audio_filepath):
+    video = VideoFileClip(test_video_filename)
     audio = video.audio 
     audioclip = audio.subclip(offset)
-    audioclip.write_audiofile(audio_filename)
+    audioclip.write_audiofile(target_audio_filepath)
+
+def get_duration(test_video_filename, ref_video_filename, offset):
+    test = VideoFileClip(test_video_filename)
+    ref = VideoFileClip(ref_video_filename)
+    return min(test.duration, ref.duration - offset)
+
+def trim_start_of_video(video_filename, offset, duration):
+    ffmpeg_extract_subclip(video_filename, offset, offset+duration, targetname=video_filename)
 
 def main():
     # returns offset of two videos in seconds
