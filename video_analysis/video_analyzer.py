@@ -41,20 +41,18 @@ class Video_Analyzer:
         self.duration = preprocess.get_duration(os.path.join(self.path, self.test_path), os.path.join(self.path, self.test_path), self.offset)
         
         # extract frames for StackedHourglass
-        # path = os.path.join(self.base_path, "{}".format(self.name))
-        # process_MPII.extract_frames(self.test_path, start_time = 0, duration = self.duration *1000, desired_fps = 24, target_folder_name = "test_frames", base_path = path, max_frames = 10000)
-        # process_MPII.extract_frames(self.ref_path, start_time = self.offset, duration = self.duration*1000, desired_fps = 24, target_folder_name = "ref_frames", base_path = path, max_frames = 10000)
+        path = os.path.join(self.base_path, "{}".format(self.name))
+        process_MPII.extract_frames(self.test_path, start_time = 0, duration = self.duration *1000, desired_fps = 24, target_folder_name = "test_frames", base_path = path, max_frames = 10000)
+        process_MPII.extract_frames(self.ref_path, start_time = self.offset, duration = self.duration*1000, desired_fps = 24, target_folder_name = "ref_frames", base_path = path, max_frames = 10000)
     
-    def analyze_frames_for_hourglass(self, num_frames):
+    def analyze_frames_for_hourglass(self):
         path = os.path.join(self.base_path, "{}".format(self.name))
         rel_no_roms_accs, rel_roms_accs, abs_accs = process_MPII.process_frames(
             "test_frames", "ref_frames", 
-            # num_frames = int(self.duration * self.fps), 
-            num_frames = num_frames,
+            num_frames = int(self.duration * self.fps), 
             target_folder_name = "sh_comparison_frames", base_path = path, 
             offset = self.offset, 
-            # save = True)
-            save = False)
+            save = True)
         
         target_file_name = os.path.join(path,self.name+"_rel_no_roms_accs_sh.npy")
         np.save(target_file_name, rel_no_roms_accs)
@@ -63,13 +61,12 @@ class Video_Analyzer:
         target_file_name = os.path.join(path,self.name+"_abs_accs_sh.npy")
         np.save(target_file_name, abs_accs)
     
-    def generate_output_for_hourglass(self, num_frames):
+    def generate_output_for_hourglass(self):
         postprocess.merge_frames_to_video_sh(
             frame_folder_path=os.path.join(self.base_path, self.name, "sh_comparison_frames"),
             target_file_path=os.path.join(self.base_path, self.name, "sh_comparison.mp4"),
             fps = 24,
-            # num_frames = self.duration * self.fps
-            num_frames = num_frames
+            num_frames = self.duration * self.fps
         )
 
         postprocess.add_audio_to_video(
@@ -138,9 +135,9 @@ def main():
     ref_path = "reference.mp4"
     fps = 24
     test_analyzer = Video_Analyzer(name, test_path, ref_path, base_path, fps)
-    # test_analyzer.read_inputs_for_hourglass()
-    # test_analyzer.analyze_frames_for_hourglass(192)
-    # test_analyzer.generate_output_for_hourglass(192)
+    test_analyzer.read_inputs_for_hourglass()
+    test_analyzer.analyze_frames_for_hourglass()
+    test_analyzer.generate_output_for_hourglass()
     test_analyzer.get_feedback_report(name+"_rel_roms_accs_sh.npy", 24)
 
     test_analyzer.initial_processing_for_openpose()

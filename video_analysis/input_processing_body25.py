@@ -6,6 +6,7 @@ import numpy as np
 import json
 import os
 
+# Gets JSON file and returns keypoints from OpenPose output
 def get_keypoints_from_json(frame_filename):
     with open(frame_filename) as f:
         data = json.load(f)

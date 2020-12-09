@@ -1,5 +1,6 @@
 import numpy as np
 
+# Calculate joint angles given a list of keypoints.
 def calculate_angles(keypoints, angle_labels, bone_labels, angle_name_labels, debug=False):
     angles = []
     for i, bones in enumerate(angle_labels):
@@ -33,6 +34,8 @@ def calculate_angles(keypoints, angle_labels, bone_labels, angle_name_labels, de
     
     return angles
 
+# Calculate relative angles (i.e. joint angles) and output an accuracy score between 0 and 1.
+# If with_ranges_of_motion is true, divide differences in angles by their ranges of motion instead of dividing by 180 for all.
 def calculate_relative_angle_scores(kp1, kp2, angle_labels, bone_labels, angle_name_labels, angle_roms, with_ranges_of_motion, debug=False):
     a1 = calculate_angles(kp1, angle_labels, bone_labels, angle_name_labels)
     a2 = calculate_angles(kp2, angle_labels, bone_labels, angle_name_labels)
@@ -50,7 +53,7 @@ def calculate_relative_angle_scores(kp1, kp2, angle_labels, bone_labels, angle_n
         score /= 180
     return 1 - score
 
-    
+# Calculate angles of bones with respect to the horizontal / x-axis.
 def calculate_absolute_angle_scores(kp1, kp2, bone_labels, bone_names=None, debug=False):
     sum_diffs = 0
     bone_count = 0
