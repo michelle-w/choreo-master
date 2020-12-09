@@ -34,7 +34,7 @@ def merge_frames_to_video_sh(frame_folder_path, target_file_path, fps, num_frame
     img = cv2.imread(frame_folder_path + "/frame{}.png".format(i))
     height, width, layers = img.shape
     size = (width,height)
-    out = cv2.VideoWriter(target_file_path,cv2.VideoWriter_fourcc(*'DIVX'), fps, size)
+    out = cv2.VideoWriter(target_file_path,cv2.VideoWriter_fourcc(*'FMP4'), fps, size)
 
     for i in range(num_frames):
         img = cv2.imread(frame_folder_path + "/frame{}.png".format(i))
@@ -48,8 +48,9 @@ def add_audio_to_video(video_file_path, audio_file_path, target_file_path):
     audioclip = audioclip.subclip(0, videoclip.duration)
 
     new_audioclip = CompositeAudioClip([audioclip])
-    videoclip.audio = new_audioclip
-    videoclip.write_videofile(target_file_path)
+    # videoclip.audio = new_audioclip
+    videoclip2 = videoclip.set_audio(new_audioclip)
+    videoclip2.write_videofile(target_file_path, codec="libx264", audio_codec="aac")
 
 def main():
     # audio = "../aya_audio.mp3"
