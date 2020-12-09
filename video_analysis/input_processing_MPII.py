@@ -113,7 +113,7 @@ def process_frames(folder_name1, folder_name2, num_frames, target_folder_name = 
         f2_name = os.path.join(folder_path2, f_name2)
         kp1 = get_keypoints(f1_name)
         kp2 = get_keypoints(f2_name)
-        save=True
+        # save=True
         draw_images(im1=f1_name, im2=f2_name, kp1=kp1, kp2=kp2, save=save, target_folder_path=target_folder_path, frame_index=i)
 
         kp1 = kp1[0]
@@ -129,6 +129,8 @@ def process_frames(folder_name1, folder_name2, num_frames, target_folder_name = 
         rel_no_roms_accs[i] = rel_no_roms_acc
         rel_roms_accs[i] = rel_roms_acc
         abs_accs[i] = abs_acc
+        if i % 10 == 0:
+            print("Frame:", i)
  
     return rel_no_roms_accs, rel_roms_accs, abs_accs
 

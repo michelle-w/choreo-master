@@ -1,3 +1,5 @@
+# Contains labels for MPII keypoints, bones, and angles
+
 R_ANKLE = 0
 R_KNEE = 1
 R_HIP = 2

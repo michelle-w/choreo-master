@@ -3,7 +3,8 @@ from model import hg8
 
 from PIL import Image
 from torchvision import transforms
-    
+
+# Get pretrained stacked hourglass model and returns estimated joint keypoints as numpy array. 
 def get_keypoints(im_path):
     model = hg8(pretrained=True)
     predictor = HumanPosePredictor(model, device='cpu')

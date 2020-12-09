@@ -6,6 +6,7 @@ import numpy as np
 import json
 import os
 
+# Gets JSON file and returns keypoints from OpenPose output
 def get_keypoints_from_json(frame_filename):
     with open(frame_filename) as f:
         data = json.load(f)
@@ -41,7 +42,7 @@ def process_openpose_frames(name, folder_name1, folder_name2, num_frames, base_p
         zero_filled_number = number_str.zfill(12) # must have 12 digits
         f_name1 = "{}_test_{}_keypoints.json".format(name, zero_filled_number)
 
-        number_str = str(i+shift)
+        number_str = str(i)
         zero_filled_number = number_str.zfill(12) # must have 12 digits
         f_name2 = "{}_reference_{}_keypoints.json".format(name, zero_filled_number)
         
@@ -52,9 +53,9 @@ def process_openpose_frames(name, folder_name1, folder_name2, num_frames, base_p
         kp2 = get_keypoints_from_json(f2_name)
 
         if len(kp1) != 0 and len(kp2) != 0:
-            rel_no_roms_acc = calculate_relative_angle_scores(kp1, kp2, b25.BODY25_ANGLE_LABELS, b25.BODY25_BONES, b25.BODY25_ANGLES_NAMES, b25.BODY25_ANGLE_ROMS, False)
-            rel_roms_acc = calculate_relative_angle_scores(kp1, kp2, b25.BODY25_ANGLE_LABELS, b25.BODY25_BONES, b25.BODY25_ANGLES_NAMES, b25.BODY25_ANGLE_ROMS, True)
-            abs_acc = calculate_absolute_angle_scores(kp1, kp2, b25.BODY25_ANGLE_LABELS, b25.BODY25_BONES)
+            rel_no_roms_acc = calculate_relative_angle_scores(kp1, kp2, b25.BODY25_ANGLES, b25.BODY25_BONES, b25.BODY25_ANGLES_NAMES, b25.BODY25_ANGLE_ROMS, False)
+            rel_roms_acc = calculate_relative_angle_scores(kp1, kp2, b25.BODY25_ANGLES, b25.BODY25_BONES, b25.BODY25_ANGLES_NAMES, b25.BODY25_ANGLE_ROMS, True)
+            abs_acc = calculate_absolute_angle_scores(kp1, kp2, b25.BODY25_ANGLES, b25.BODY25_BONES)
             prev_avg = (rel_no_roms_acc + rel_roms_acc + abs_acc) / 3
         else:
             acc = prev_avg

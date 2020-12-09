@@ -24,7 +24,7 @@ def calculate_offset(test_video_filename, ref_video_filename):
 def get_audio_file(test_video_filename, offset, target_audio_filepath):
     video = VideoFileClip(test_video_filename)
     audio = video.audio 
-    audioclip = audio.subclip(offset)
+    audioclip = audio.subclip(offset, video.duration)
     audioclip.write_audiofile(target_audio_filepath)
 
 def get_duration(test_video_filename, ref_video_filename, offset):
@@ -32,8 +32,8 @@ def get_duration(test_video_filename, ref_video_filename, offset):
     ref = VideoFileClip(ref_video_filename)
     return min(test.duration, ref.duration - offset)
 
-def trim_start_of_video(video_filename, offset, duration):
-    ffmpeg_extract_subclip(video_filename, offset, offset+duration, targetname=video_filename)
+def trim_start_of_video(video_filename, offset, duration, target_name):
+    ffmpeg_extract_subclip(video_filename, offset, offset+duration, targetname=target_name)
 
 def main():
     # returns offset of two videos in seconds
