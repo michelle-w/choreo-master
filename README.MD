@@ -34,10 +34,10 @@ See the [OpenPose]() and [StackedHourglass](https://arxiv.org/pdf/1603.06937.pdf
 
 Specific libraries used: [Moviepy](https://zulko.github.io/moviepy/index.html) for editing audio and video clips, [align videos by sound](https://github.com/jeorgen/align-videos-by-sound) for aligning the test and reference videos.
 
-### GitHub repositories consulted
+<!-- ### GitHub repositories consulted
 Hourglass Model
 <ul>
-<li> Original paper code for Stacked Hourglass (2016): [pose-hg-train](https://github.com/princeton-vl/pose-hg-train) </li>
+<li> Original paper code for Stacked Hourglass (2016): <a href="https://github.com/princeton-vl/pose-hg-train)">GitHub repository</a>
 <li> PyTorch implementation of Stacked Hourglass (2018): [pytorch_stacked_hourglass](https://github.com/princeton-vl/pytorch_stacked_hourglass) </li>
 <li>Pretrained Stacked Hourglass Model: [PyTorch toolkit for 2D estimation](https://github.com/anibali/pytorch-stacked-hourglass)</li>
 <li>Helper functions for evaluation and plotting keypoints for Hourglass: [TensorFlow Hourglass]https://github.com/ethanyanjiali/deep-vision/tree/master/Hourglass/tensorflow</li>
@@ -46,7 +46,7 @@ OpenPose
 <ul>
 <li> GitHub repository: [OpenPose](https://github.com/CMU-Perceptual-Computing-Lab/openpose) </li>
 <li> Pose Detection with OpenPose demo and other Colab notebooks: [pose detection notebooks](https://github.com/tugstugi/dl-colab-notebooks#pose-detection)
-</ul>
+</ul> -->
 
 
 
